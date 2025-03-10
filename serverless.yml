@@ -1,0 +1,49 @@
+service: serverless-challenge
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    SWAPI_PEOPLE_URL: ${env:SWAPI_PEOPLE_URL}
+    SWAPI_VEHICLES_URL: ${env:SWAPI_VEHICLES_URL}
+    SWAPI_VEHICLES_URL: ${env:SWAPI_VEHICLES_URL}
+    OPENF1_DRIVERS_URL: ${env:OPENF1_DRIVERS_URL}
+    REDIS_HOST: ${env:REDIS_HOST}
+    REDIS_PORT: ${env:REDIS_PORT}
+    REDIS_TTL: ${env:REDIS_TTL}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AWS_DYNAMODB_TABLE}"
+
+functions:
+  api:
+    handler: src/server.handler 
+    events:
+      - httpApi: "*"
+
+resources:
+  Resources:
+    FusionDataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.AWS_DYNAMODB_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
