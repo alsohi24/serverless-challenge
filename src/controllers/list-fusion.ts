@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { FusionService } from '../services/FusionService';
+import { generateRaceParticipants } from '@/services/podracers-participans';
 
 /**
  * @swagger
@@ -37,7 +37,7 @@ export const podracersParticipants = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const fusionData = await FusionService.getFusionDataWithCache(id);
+    const fusionData = await generateRaceParticipants();
 
     res.json(fusionData);
   } catch (error) {

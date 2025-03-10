@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { CustomDataService } from '../services/CustomDataService';
+import { CustomDataService } from '../services/custom-data';
 /**
  * @swagger
  * /almacenar:

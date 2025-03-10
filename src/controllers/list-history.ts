@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { HistoryService } from '../services/HistoryService';
-import { validatePagination } from '../utils/validateUtil';
+import { HistoryService } from '../services/history-service';
 
 /**
  * @swagger
@@ -46,7 +45,10 @@ export const listHistory = async (
 ): Promise<void> => {
   try {
     // Validación del req
-    const { page, limit } = validatePagination(req.query.page, req.query.limit);
+    const { page, limit } = validatePagination(
+      String(req.query.page),
+      String(req.query.limit)
+    );
 
     // Llama al servicio para obtener el historial
     const history = await HistoryService.getHistory(page, limit);
@@ -55,4 +57,27 @@ export const listHistory = async (
   } catch (error) {
     next(error);
   }
+};
+
+const validatePagination = (
+  page?: string,
+  limit?: string
+): { page: number; limit: number } => {
+  const DEFAULT_PAGE = 1;
+  const DEFAULT_LIMIT = 10;
+  const MAX_LIMIT = 100;
+
+  const parsedPage = Number(page);
+  const parsedLimit = Number(limit);
+
+  return {
+    page:
+      isNaN(parsedPage) || parsedPage < 1
+        ? DEFAULT_PAGE
+        : Math.floor(parsedPage),
+    limit:
+      isNaN(parsedLimit) || parsedLimit < 1
+        ? DEFAULT_LIMIT
+        : Math.min(Math.floor(parsedLimit), MAX_LIMIT),
+  };
 };

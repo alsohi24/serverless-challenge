@@ -83,15 +83,16 @@ function getRandomNumber(min: number, max: number): number {
 }
 
 // 🏁 Función para fusionar los datos y generar la lista de la carrera
-const generateRaceParticipants = async (): Promise<Participant[]> => {
+export const generateRaceParticipants = async (): Promise<Participant[]> => {
   const drivers = getF1Drivers();
   const jedis = getPeopleSW();
   const vehicles = await getRacingVehicles();
+  const date = Date.now();
 
   // Unir pilotos de F1 y Jedis en una misma lista
   const allDrivers = [...(await drivers), ...(await jedis)];
 
-  return allDrivers.map((driver, index) => {
+  const all: Participant[] = allDrivers.map((driver, index) => {
     const randIndex = getRandomNumber(0, 2);
     console.log('randIndex', randIndex);
     const assignedVehicle = vehicles[randIndex]; // Asignar vehículo de manera cíclica
@@ -101,6 +102,10 @@ const generateRaceParticipants = async (): Promise<Participant[]> => {
       planet: driver.nationality,
     };
   });
+
+  await saveToCacheAndDB(String(date), all);
+
+  return all;
 };
 
 const filterRacingShips = (ships: PodracerDTO[]): PodracerDTO[] => {
@@ -114,9 +119,9 @@ const filterRacingShips = (ships: PodracerDTO[]): PodracerDTO[] => {
 };
 
 // Método reutilizable para guardar en caché y en BD
-const saveToCacheAndDB = async (
+export const saveToCacheAndDB = async (
   key: string,
-  data: Participant
+  data: Participant[]
 ): Promise<void> => {
   try {
     await CacheService.setCache(key, data);
