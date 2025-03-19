@@ -5,13 +5,15 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   environment:
-    SWAPI_PEOPLE_URL: ${env:SWAPI_PEOPLE_URL}
-    SWAPI_VEHICLES_URL: ${env:SWAPI_VEHICLES_URL}
-    SWAPI_VEHICLES_URL: ${env:SWAPI_VEHICLES_URL}
-    OPENF1_DRIVERS_URL: ${env:OPENF1_DRIVERS_URL}
-    REDIS_HOST: ${env:REDIS_HOST}
-    REDIS_PORT: ${env:REDIS_PORT}
-    REDIS_TTL: ${env:REDIS_TTL}
+    PORT: ${env:PORT, '3000'}
+    SWAPI_PEOPLE_URL: ${env:SWAPI_PEOPLE_URL, 'https://swapi.dev/api/people'}
+    SWAPI_VEHICLES_URL: ${env:SWAPI_VEHICLES_URL, 'https://swapi.dev/api/vehicles/'}
+    OPENF1_DRIVERS_URL: ${env:OPENF1_DRIVERS_URL, 'https://api.openf1.org/v1/drivers'}
+    AWS_DYNAMODB_TABLE: ${env:AWS_DYNAMODB_TABLE, 'podracers'}
+    REDIS_HOST: ${env:REDIS_HOST, '127.0.0.1'}
+    REDIS_PORT: ${env:REDIS_PORT, '6379'}
+    REDIS_TTL: ${env:REDIS_TTL, '1800'}
+    REDIS_TLS: ${env:REDIS_TLS, 'false'}
 
   iam:
     role:
@@ -22,17 +24,19 @@ provider:
             - dynamodb:Scan
             - dynamodb:GetItem
             - dynamodb:PutItem
-          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AWS_DYNAMODB_TABLE}"
+          Resource:
+            - !GetAtt PodracersTable.Arn
 
 functions:
   api:
-    handler: src/server.handler 
+    handler: src/server.handler
+    timeout: 40
     events:
       - httpApi: "*"
 
 resources:
   Resources:
-    FusionDataTable:
+    PodracersTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:provider.environment.AWS_DYNAMODB_TABLE}
@@ -44,6 +48,16 @@ resources:
           - AttributeName: id
             KeyType: HASH
 
+    # RedisCluster:
+    #   Type: "AWS::ElastiCache::CacheCluster"
+    #   Properties:
+    #     CacheClusterId: "redis-cluster"
+    #     CacheNodeType: "cache.t3.micro"
+    #     Engine: "redis"
+    #     NumCacheNodes: 1
+    #     ClusterName: "redis-cluster"
+
 plugins:
   - serverless-dotenv-plugin
   - serverless-offline
+  - serverless-offline-redis-server

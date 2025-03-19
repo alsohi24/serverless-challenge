@@ -9,7 +9,9 @@ export const rateLimitMiddleware = (maxRequests: number, minutes: number) => {
     legacyHeaders: false,
     handler: (req: Request, res: Response, next: NextFunction) => {
       console.log('rate limit');
-      next(new Error());
+      res
+        .status(429)
+        .json({ error: 'Too many requests, please try again later.' });
     },
   });
 };

@@ -54,7 +54,7 @@ const getF1Drivers = async (): Promise<DriverDTO[]> => {
 const getPeopleSW = async (): Promise<DriverDTO[]> => {
   try {
     const response = await axios.get<{ results: PeopleSW[] }>(SWAPI_PEOPLE_URL);
-    console.log('PeopleSW ', response.data);
+    // console.log('PeopleSW ', response.data);
     // Obtener solo los primeros 15 personajes
     const people = response.data.results.slice(0, 15);
 
@@ -94,7 +94,6 @@ export const generateRaceParticipants = async (): Promise<Participant[]> => {
 
   const all: Participant[] = allDrivers.map((driver, index) => {
     const randIndex = getRandomNumber(0, 2);
-    console.log('randIndex', randIndex);
     const assignedVehicle = vehicles[randIndex]; // Asignar vehículo de manera cíclica
     return {
       name: driver.full_name,
@@ -103,7 +102,7 @@ export const generateRaceParticipants = async (): Promise<Participant[]> => {
     };
   });
 
-  await saveToCacheAndDB(String(date), all);
+  // await saveToCacheAndDB(String(date), all);
 
   return all;
 };
@@ -124,7 +123,7 @@ export const saveToCacheAndDB = async (
   data: Participant[]
 ): Promise<void> => {
   try {
-    await CacheService.setCache(key, data);
+    // await CacheService.setCache(key, data);
     await DynamoDBRepository.saveMergedData(data);
   } catch (error) {
     throw new Error('Error en la fusión de datos - saveToCacheAndDB');
